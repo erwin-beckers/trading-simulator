@@ -7,7 +7,7 @@ function getDisplayName(ChartComponent) {
 }
 
 export default function updatingDataWrapper(ChartComponent) {
-  const LENGTH = 130;
+  const LENGTH = 300;
 
   class UpdatingComponentHOC extends React.Component {
     constructor(props) {
@@ -16,6 +16,11 @@ export default function updatingDataWrapper(ChartComponent) {
         length: LENGTH,
         data: this.props.data.slice(0, LENGTH)
       };
+      for (let i = 0; i < 20; ++i) {
+        this.state.data.push({
+          date: this.props.data[i + LENGTH + 1].date
+        });
+      }
       this.speed = 1000;
       this.onKeyPress = this.onKeyPress.bind(this);
     }
@@ -117,7 +122,16 @@ export default function updatingDataWrapper(ChartComponent) {
       const { type } = this.props;
       const { data } = this.state;
 
-      return <ChartComponent ref="component" orderChartItems={this.props.orderChartItems} onClose={this.props.onClose} onChanged={this.props.onChanged} data={data} type={type} />;
+      return (
+        <ChartComponent
+          ref="component"
+          orderChartItems={this.props.orderChartItems}
+          onClose={this.props.onClose}
+          onChanged={this.props.onChanged}
+          data={data}
+          type={type}
+        />
+      );
     }
   }
   UpdatingComponentHOC.defaultProps = {
