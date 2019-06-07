@@ -4,15 +4,22 @@ import PropTypes from "prop-types";
 import { format } from "d3-format";
 
 import { ChartCanvas, Chart } from "react-stockcharts";
-import { CandlestickSeries } from "react-stockcharts/lib/series";
+import {
+  BarSeries,
+  AreaSeries,
+  CandlestickSeries,
+  LineSeries
+} from "react-stockcharts/lib/series";
 import { XAxis, YAxis } from "react-stockcharts/lib/axes";
 import {
   CrossHairCursor,
+  CurrentCoordinate,
   EdgeIndicator,
   MouseCoordinateY
 } from "react-stockcharts/lib/coordinates";
 import { saveInteractiveNodes, getInteractiveNodes } from "./interactiveutils";
 import { discontinuousTimeScaleProvider } from "react-stockcharts/lib/scale";
+import { ema, sma } from "react-stockcharts/lib/indicator";
 import { fitWidth } from "react-stockcharts/lib/helper";
 import { InteractiveYCoordinate } from "react-stockcharts/lib/interactive";
 
@@ -55,10 +62,10 @@ class CandleStickChart extends React.Component {
   }
 
   onDragComplete(yCoordinateList, moreProps, draggedAlert) {
-	let price=round(draggedAlert.yValue);
+    let price = round(draggedAlert.yValue);
     let order = draggedAlert.order;
     if (draggedAlert.id === order.chartTakeProfit.id) {
-	  order.takeprofit = price;
+      order.takeprofit = price;
       this.props.onChanged(order);
     }
     if (draggedAlert.id === order.chartStoploss.id) {
@@ -68,9 +75,33 @@ class CandleStickChart extends React.Component {
   }
 
   render() {
+    const ema20 = ema()
+      .id(0)
+      .options({ windowSize: 20 })
+      .merge((d, c) => {
+        d.ema20 = c;
+      })
+      .accessor(d => d.ema20);
+
+    const ema50 = ema()
+      .id(2)
+      .options({ windowSize: 50 })
+      .merge((d, c) => {
+        d.ema50 = c;
+      })
+      .accessor(d => d.ema50);
+
+    const smaVolume70 = sma()
+      .id(3)
+      .options({ windowSize: 70, sourcePath: "volume" })
+      .merge((d, c) => {
+        d.smaVolume70 = c;
+      })
+      .accessor(d => d.smaVolume70);
+
     const { type, data: initialData, width, ratio } = this.props;
 
-    const calculatedData = initialData;
+    const calculatedData = ema20(ema50(smaVolume70(initialData)));
     const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
       d => d.date
     );
@@ -105,9 +136,72 @@ class CandleStickChart extends React.Component {
         displayXAccessor={displayXAccessor}
       >
         <Chart
+          id={2}
+          yExtents={[d => d.volume, smaVolume70.accessor()]}
+          height={100}
+          origin={(w, h) => [0, h - 100]}
+        >
+          <YAxis
+            axisAt="left"
+            orient="left"
+            ticks={5}
+            tickFormat={format(".2s")}
+          />
+
+          <BarSeries
+            yAccessor={d => d.volume}
+            fill={d => (d.close > d.open ? "#6BA583" : "#FF0000")}
+          />
+          <AreaSeries
+            yAccessor={smaVolume70.accessor()}
+            stroke={smaVolume70.stroke()}
+            fill={smaVolume70.fill()}
+          />
+
+          <CurrentCoordinate
+            yAccessor={smaVolume70.accessor()}
+            fill={smaVolume70.stroke()}
+          />
+          <CurrentCoordinate yAccessor={d => d.volume} fill="#9B0A47" />
+
+          <EdgeIndicator
+            itemType="first"
+            orient="left"
+            edgeAt="left"
+            yAccessor={d => d.volume}
+            displayFormat={format(".4s")}
+            fill="#0F0F0F"
+          />
+          <EdgeIndicator
+            itemType="last"
+            orient="right"
+            edgeAt="right"
+            yAccessor={d => d.volume}
+            displayFormat={format(".4s")}
+            fill="#0F0F0F"
+          />
+          <EdgeIndicator
+            itemType="first"
+            orient="left"
+            edgeAt="left"
+            yAccessor={smaVolume70.accessor()}
+            displayFormat={format(".4s")}
+            fill={smaVolume70.fill()}
+          />
+          <EdgeIndicator
+            itemType="last"
+            orient="right"
+            edgeAt="right"
+            yAccessor={smaVolume70.accessor()}
+            displayFormat={format(".4s")}
+            fill={smaVolume70.fill()}
+          />
+        </Chart>
+        <Chart
           id={1}
           height={height - 50}
-          yExtents={[d => [d.high, d.low]]}
+          yPan
+          yExtents={[d => [d.high, d.low], ema20.accessor(), ema50.accessor()]}
           padding={{ top: 10, bottom: 20 }}
         >
           <XAxis
@@ -140,14 +234,37 @@ class CandleStickChart extends React.Component {
             wickStroke={d => (d.close > d.open ? "#32CD32" : "#FF0000")}
             fill={d => (d.close > d.open ? "#32CD32" : "#FF0000")}
           />
+          <LineSeries
+            yAccessor={ema20.accessor()}
+            stroke={ema20.stroke()}
+            highlightOnHover
+          />
+          <LineSeries
+            yAccessor={ema50.accessor()}
+            stroke={ema50.stroke()}
+            highlightOnHover
+          />
+          <CurrentCoordinate
+            yAccessor={ema20.accessor()}
+            fill={ema20.stroke()}
+          />
+          <CurrentCoordinate
+            yAccessor={ema50.accessor()}
+            fill={ema50.stroke()}
+          />
           <EdgeIndicator
             itemType="last"
             orient="right"
             edgeAt="right"
-			yAccessor={d => d.close}
-			lineStroke="#ffffff"
+            yAccessor={d => d.close}
+            lineStroke="#ffffff"
             fill={d => (d.close > d.open ? "#6BA583" : "#DB0000")}
           />
+					<EdgeIndicator itemType="last" orient="right" edgeAt="right"
+						yAccessor={ema20.accessor()} fill={ema20.fill()}/>
+					<EdgeIndicator itemType="last" orient="right" edgeAt="right"
+						yAccessor={ema50.accessor()} fill={ema50.fill()}/>
+
           <InteractiveYCoordinate
             ref={this.saveInteractiveNodes("InteractiveYCoordinate", 1)}
             enabled={this.state.enableInteractiveObject}
