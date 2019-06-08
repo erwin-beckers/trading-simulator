@@ -2,38 +2,11 @@ import React from "react";
 import { render } from "react-dom";
 import TopToolBar from "./TopToolBar";
 import Orders from "./Orders";
-import Chart from "./Chart";
+import ChartComponent from "./Chart";
 import { getData } from "./utils";
 import { TypeChooser } from "react-stockcharts/lib/helper";
 import { InteractiveYCoordinate } from "react-stockcharts/lib/interactive";
 import shortid from "shortid";
-
-class ChartComponent extends React.Component {
-  componentDidMount() {
-    getData().then(data => {
-      this.setState({ data });
-    });
-  }
-  render() {
-    if (this.state == null) {
-      return <div>Loading...</div>;
-    }
-    return (
-      <TypeChooser>
-        {type => (
-          <Chart
-            orderChartItems={this.props.orderChartItems}
-            onClose={this.props.onClose}
-            onChanged={this.props.onChanged}
-            onPriceChanged={this.props.onPriceChanged}
-            type={type}
-            data={this.state.data}
-          />
-        )}
-      </TypeChooser>
-    );
-  }
-}
 
 const sell = {
   ...InteractiveYCoordinate.defaultProps.defaultPriceCoordinate,
@@ -178,7 +151,7 @@ class RootComponent extends React.Component {
 
     let orderChartItems = this.state.orderChartItems.slice();
     this.addOrderChartItems(newOrder, orderChartItems);
-    this.updateOpenPosition(newOrders,orderChartItems);
+    this.updateOpenPosition(newOrders, orderChartItems);
     this.setState({ orderChartItems: orderChartItems });
   }
 
@@ -200,7 +173,7 @@ class RootComponent extends React.Component {
 
     let orderChartItems = this.state.orderChartItems.slice();
     this.addOrderChartItems(newOrder, orderChartItems);
-    this.updateOpenPosition(newOrders,orderChartItems);
+    this.updateOpenPosition(newOrders, orderChartItems);
     this.setState({ orderChartItems: orderChartItems });
   }
 
@@ -220,7 +193,7 @@ class RootComponent extends React.Component {
       order,
       this.state.orderChartItems
     );
-    this.updateOpenPosition(newOrders,orderChartItems);
+    this.updateOpenPosition(newOrders, orderChartItems);
     this.setState({ orderChartItems: orderChartItems });
   }
 
@@ -242,6 +215,9 @@ class RootComponent extends React.Component {
   }
 
   closeOrdersTPorSL(price) {
+    if (this.state.orders.length==0){
+      return;
+    }
     let newOrders = this.state.orders.slice();
     for (let i = 0; i < newOrders.length; ++i) {
       let order = newOrders[i];
@@ -280,12 +256,12 @@ class RootComponent extends React.Component {
         order.profitloss = this.calculateProfit(order, price.close);
       }
     }
-	var chartItems=this.state.orderChartItems.slice();
+    var chartItems = this.state.orderChartItems.slice();
     this.updateOpenPosition(newOrders, chartItems);
     this.setState({
       orders: newOrders,
       orderChartItems: chartItems
-	});
+    });
   }
 
   onPriceChanged(price) {
@@ -294,7 +270,7 @@ class RootComponent extends React.Component {
   }
 
   updateOpenPosition(orders, orderChartItems) {
-    if (orders.length <= 0 || orderChartItems.length<=0 ) {
+    if (orders.length <= 0 || orderChartItems.length <= 0) {
       return;
     }
     let averagePrice = 0;
@@ -304,16 +280,17 @@ class RootComponent extends React.Component {
       averagePrice += orders[i].open;
       totalProfitLoss += orders[i].profitloss;
     }
-    averagePrice /= orders.length; 
+    averagePrice /= orders.length;
     orderChartItems[0].yValue = averagePrice;
     if (totalProfitLoss >= 0) {
-		orderChartItems[0].text = orders.length + " $" + totalProfitLoss.toFixed(2);
-		orderChartItems[0].textFill = "#32CD32";
+      orderChartItems[0].text =
+        orders.length + " $" + totalProfitLoss.toFixed(2);
+      orderChartItems[0].textFill = "#32CD32";
     } else {
-		orderChartItems[0].text =
+      orderChartItems[0].text =
         orders.length + " $(" + +totalProfitLoss.toFixed(2) + ")";
-		orderChartItems[0].textFill = "#FF0000";
-    } 
+      orderChartItems[0].textFill = "#FF0000";
+    }
   }
 
   render() {

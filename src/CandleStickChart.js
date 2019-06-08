@@ -260,11 +260,20 @@ class CandleStickChart extends React.Component {
             lineStroke="#ffffff"
             fill={d => (d.close > d.open ? "#6BA583" : "#DB0000")}
           />
-					<EdgeIndicator itemType="last" orient="right" edgeAt="right"
-						yAccessor={ema20.accessor()} fill={ema20.fill()}/>
-					<EdgeIndicator itemType="last" orient="right" edgeAt="right"
-						yAccessor={ema50.accessor()} fill={ema50.fill()}/>
-
+          <EdgeIndicator
+            itemType="last"
+            orient="right"
+            edgeAt="right"
+            yAccessor={ema20.accessor()}
+            fill={ema20.fill()}
+          />
+          <EdgeIndicator
+            itemType="last"
+            orient="right"
+            edgeAt="right"
+            yAccessor={ema50.accessor()}
+            fill={ema50.fill()}
+          />
           <InteractiveYCoordinate
             ref={this.saveInteractiveNodes("InteractiveYCoordinate", 1)}
             enabled={this.state.enableInteractiveObject}

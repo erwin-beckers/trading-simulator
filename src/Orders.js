@@ -21,36 +21,35 @@ const StyledTableCell = withStyles(theme => ({
   }
 }))(TableCell);
 
-
 class Orders extends React.Component {
   constructor(props) {
     super(props);
     this.classes = makeStyles(theme => ({
-        root: {
-          width: "100%",
-          height: "calc(100vh - 800px)"
-        },
-        paper: {
-          marginTop: theme.spacing(3),
-          width: "100%",
-          overflowX: "auto",
-          marginBottom: theme.spacing(2)
-        },
-        table: {
-          minWidth: 650
-        }
-      }));
+      root: {
+        width: "100%",
+        height: "calc(100vh - 800px)"
+      },
+      paper: {
+        marginTop: theme.spacing(3),
+        width: "100%",
+        overflowX: "auto",
+        marginBottom: theme.spacing(2)
+      },
+      table: {
+        minWidth: 650
+      }
+    }));
   }
 
-  closeOrder(order){
-      this.props.onClose(order);
+  closeOrder(order) {
+    this.props.onClose(order);
   }
 
-  onMoveToBreakEven(order){
-     if (order.profitloss > 0){
-         order.stoploss = order.open;
-         this.props.onChanged(order);
-     }
+  onMoveToBreakEven(order) {
+    if (order.profitloss > 0) {
+      order.stoploss = order.open;
+      this.props.onChanged(order);
+    }
   }
   render() {
     return (
@@ -71,10 +70,12 @@ class Orders extends React.Component {
             </TableHead>
             <TableBody>
               {this.props.orders.map(row => (
-                <TableRow  key={row.id}>
+                <TableRow key={row.id}>
                   <StyledTableCell align="right">{row.type}</StyledTableCell>
                   <StyledTableCell align="right">{row.size}</StyledTableCell>
-                  <StyledTableCell align="right">{row.open.toFixed(2)}</StyledTableCell>
+                  <StyledTableCell align="right">
+                    {row.open.toFixed(2)}
+                  </StyledTableCell>
                   <StyledTableCell align="right">
                     {row.stoploss.toFixed(2)}
                   </StyledTableCell>
