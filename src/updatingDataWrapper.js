@@ -45,7 +45,10 @@ export default function updatingDataWrapper(ChartComponent) {
 
     getData(offset) {
       let newData = this.props.data.slice(offset + 1, offset + 1 + LENGTH);
-      var currentPrice = newData[newData.length - 1];
+      let currentPrice=newData[newData.length - 1];
+      this.setState({
+        currentPrice:currentPrice
+      });
       for (let i = 0; i < 20; ++i) {
         newData.push({
           date: currentPrice.date
@@ -59,8 +62,7 @@ export default function updatingDataWrapper(ChartComponent) {
         offset: offset,
         data: newData
       });
-      var currentPrice = newData[newData.length - 1];
-      this.props.onPriceChanged(currentPrice);
+      this.props.onPriceChanged(this.state.currentPrice);
     }
 
     onKeyPress(e) {
