@@ -110,8 +110,7 @@ class CandleStickChart extends React.Component {
     );
 
     const margin = { left: 70, right: 70, top: 20, bottom: 30 };
-
-    const height = 550;
+    const height = this.props.chartHeight;
     const gridHeight = height - margin.top - margin.bottom;
     const gridWidth = width - margin.left - margin.right;
     const showGrid = true;
@@ -295,6 +294,7 @@ CandleStickChart.propTypes = {
   onClose: PropTypes.func.isRequired,
   onChanged: PropTypes.func.isRequired,
   data: PropTypes.array.isRequired,
+  chartHeight: PropTypes.number.isRequired,
   width: PropTypes.number.isRequired,
   ratio: PropTypes.number.isRequired,
   type: PropTypes.oneOf(["svg", "hybrid"]).isRequired

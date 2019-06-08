@@ -74,6 +74,7 @@ export default function updatingDataWrapper(ChartComponent) {
           onChanged={this.props.onChanged}
           data={data}
           type={type}
+          chartHeight={this.props.chartHeight}
         />
       );
     }

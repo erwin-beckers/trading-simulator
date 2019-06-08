@@ -23,6 +23,7 @@ class ChartComponent extends React.Component {
             onPriceChanged={this.props.onPriceChanged}
             type={type}
             data={this.state.data}
+            chartHeight={this.props.chartHeight}
           />
         )}
       </TypeChooser>

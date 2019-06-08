@@ -7,6 +7,8 @@ import { getData } from "./utils";
 import { TypeChooser } from "react-stockcharts/lib/helper";
 import { InteractiveYCoordinate } from "react-stockcharts/lib/interactive";
 import shortid from "shortid";
+import SplitterLayout from 'react-splitter-layout';
+import 'react-splitter-layout/lib/index.css';
 
 const sell = {
   ...InteractiveYCoordinate.defaultProps.defaultPriceCoordinate,
@@ -61,7 +63,10 @@ class RootComponent extends React.Component {
       orders: [],
       orderChartItems: [],
       capital: 10000,
-      currentPrice: undefined
+      tickSize: 0.25,
+      tickValue: 12.5,
+      currentPrice: undefined,
+      chartHeight: this.getWindowHeight()-100
     };
   }
 
@@ -208,60 +213,63 @@ class RootComponent extends React.Component {
 
   calculateProfit(order, price) {
     if (order.type === "Long") {
-      return ((price - order.open) / 0.25) * 12.5;
+      return (
+        ((price - order.open) / this.state.tickSize) * this.state.tickValue
+      );
     } else {
-      return ((order.open - price) / 0.25) * 12.5;
+      return (
+        ((order.open - price) / this.state.tickSize) * this.state.tickValue
+      );
     }
   }
 
   closeOrdersTPorSL(price) {
-    if (this.state.orders.length==0){
+    if (this.state.orders.length == 0) {
       return;
     }
-    let newOrders = this.state.orders.slice();
-    for (let i = 0; i < newOrders.length; ++i) {
-      let order = newOrders[i];
+
+    let ordersToClose = [];
+    for (let i = 0; i < this.state.orders.length; ++i) {
+      let order = this.state.orders[i];
       if (order.type === "Long") {
         if (price.low <= order.stoploss) {
-          // close order
+          // stoploss hit, close order
           order.profitloss = this.calculateProfit(order, order.stoploss);
-          this.onCloseOrder(order);
-          this.onPriceChanged(price);
-          return;
-        }
-        if (price.high >= order.takeprofit) {
-          // close order
+          ordersToClose.push(order);
+        } else if (price.high >= order.takeprofit) {
+          // takeprofit hit, close order
           order.profitloss = this.calculateProfit(order, order.takeprofit);
-          this.onCloseOrder(order);
-          this.onPriceChanged(price);
-          return;
+          ordersToClose.push(order);
         }
         order.profitloss = this.calculateProfit(order, price.close);
       } else {
         // short
         if (price.high >= order.stoploss) {
-          // close order
+          // stoploss hit, close order
           order.profitloss = this.calculateProfit(order, order.stoploss);
-          this.onCloseOrder(order);
-          this.onPriceChanged(price);
-          return;
-        }
-        if (price.low <= order.takeprofit) {
-          // close order
+          ordersToClose.push(order);
+        } else if (price.low <= order.takeprofit) {
+          // takeprofit hit, close order
           order.profitloss = this.calculateProfit(order, order.takeprofit);
-          this.onCloseOrder(order);
-          this.onPriceChanged(price);
-          return;
+          ordersToClose.push(order);
         }
         order.profitloss = this.calculateProfit(order, price.close);
       }
     }
-    var chartItems = this.state.orderChartItems.slice();
-    this.updateOpenPosition(newOrders, chartItems);
-    this.setState({
-      orders: newOrders,
-      orderChartItems: chartItems
-    });
+    
+    if (ordersToClose.length) {
+      for (let i = 0; i < ordersToClose.length; ++i) {
+        this.onCloseOrder(ordersToClose[i]);
+      }
+    }
+    this.updateOpenPosition(this.state.orders, this.state.orderChartItems);
+  //  let newOrders = this.state.orders.slice();
+  //  var chartItems = this.state.orderChartItems.slice();
+  //  this.updateOpenPosition(newOrders, chartItems);
+  //  this.setState({
+  //    orders: newOrders,
+  //    orderChartItems: chartItems
+  //  });
   }
 
   onPriceChanged(price) {
@@ -293,6 +301,24 @@ class RootComponent extends React.Component {
     }
   }
 
+  getWindowHeight(){
+    let w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName('body')[0];
+    return w.innerHeight|| e.clientHeight|| g.clientHeight;
+  }
+
+
+  onSecondaryPaneSizeChange(secondaryPaneSize) {
+    var height=this.getWindowHeight() - (secondaryPaneSize+70);
+    var self=this;
+    setTimeout(() => {
+      self.setState({ chartHeight: height});
+      
+    }, 100);
+  }
+
   render() {
     return (
       <div>
@@ -301,17 +327,22 @@ class RootComponent extends React.Component {
           onSell={this.onSellOrder.bind(this)}
           capital={this.state.capital}
         />
-        <ChartComponent
-          orderChartItems={this.state.orderChartItems}
-          onClose={this.onCloseOrder.bind(this)}
-          onChanged={this.onOrderChanged.bind(this)}
-          onPriceChanged={this.onPriceChanged.bind(this)}
-        />
-        <Orders
-          orders={this.state.orders}
-          onClose={this.onCloseOrder.bind(this)}
-          onChanged={this.onOrderChanged.bind(this)}
-        />
+        <SplitterLayout vertical={true} percentage={false}  secondaryInitialSize={230}
+                        onSecondaryPaneSizeChange={this.onSecondaryPaneSizeChange.bind(this)}
+        >
+          <ChartComponent
+            orderChartItems={this.state.orderChartItems}
+            onClose={this.onCloseOrder.bind(this)}
+            onChanged={this.onOrderChanged.bind(this)}
+            onPriceChanged={this.onPriceChanged.bind(this)}
+            chartHeight={this.state.chartHeight}
+          />
+          <Orders
+            orders={this.state.orders}
+            onClose={this.onCloseOrder.bind(this)}
+            onChanged={this.onOrderChanged.bind(this)}
+          />
+        </SplitterLayout>
       </div>
     );
   }
