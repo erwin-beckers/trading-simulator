@@ -145,6 +145,8 @@ class CandleStickChart extends React.Component {
             axisAt="left"
             orient="left"
             ticks={5}
+            tickStroke="#FFFFFF"
+            stroke="#FFFFFF"
             tickFormat={format(".2s")}
           />
 
