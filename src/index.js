@@ -66,7 +66,8 @@ class RootComponent extends React.Component {
       tickSize: 0.25,
       tickValue: 12.5,
       currentPrice: undefined,
-      chartHeight: this.getWindowHeight()-100
+      chartHeight: this.getWindowHeight()-100,
+      startDate:'1/1/2019'
     };
   }
 
@@ -317,6 +318,13 @@ class RootComponent extends React.Component {
       
     }, 100);
   }
+  
+  onGotoDate(date)
+  {
+    this.setState({
+      startDate:date
+    })
+  }
 
   render() {
     return (
@@ -324,6 +332,7 @@ class RootComponent extends React.Component {
         <TopToolBar
           onBuy={this.onBuyOrder.bind(this)}
           onSell={this.onSellOrder.bind(this)}
+          onGotoDate={this.onGotoDate.bind(this)}
           capital={this.state.capital}
         />
         <SplitterLayout vertical={true} percentage={false}  secondaryInitialSize={230}
@@ -335,6 +344,7 @@ class RootComponent extends React.Component {
             onChanged={this.onOrderChanged.bind(this)}
             onPriceChanged={this.onPriceChanged.bind(this)}
             chartHeight={this.state.chartHeight}
+            startDate={this.state.startDate}
           />
           <Orders
             orders={this.state.orders}

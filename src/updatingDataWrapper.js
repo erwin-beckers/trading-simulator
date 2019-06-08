@@ -14,10 +14,24 @@ export default function updatingDataWrapper(ChartComponent) {
       super(props);
       this.state = {
         offset: 0,
-        data: this.props.data.slice(0, LENGTH)
+        data: this.getData(0)
       };
-      this.updateData(0);
       this.onKeyPress = this.onKeyPress.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+      if (this.props.startDate !== prevProps.startDate) {
+        var startDate = Date.parse(this.props.startDate);
+        for (let i = 0; i < this.props.data.length; ++i) {
+          let date = this.props.data[i].date;
+          if (date >= startDate) {
+            let offset = Math.max(0, i - LENGTH);
+            let newData = this.getData(offset);
+            this.updateData(newData, offset);
+            return;
+          }
+        }
+      }
     }
 
     componentDidMount() {
@@ -29,7 +43,7 @@ export default function updatingDataWrapper(ChartComponent) {
       document.removeEventListener("keydown", this.onKeyPress);
     }
 
-    updateData(offset) {
+    getData(offset) {
       let newData = this.props.data.slice(offset + 1, offset + 1 + LENGTH);
       var currentPrice = newData[newData.length - 1];
       for (let i = 0; i < 20; ++i) {
@@ -37,10 +51,15 @@ export default function updatingDataWrapper(ChartComponent) {
           date: currentPrice.date
         });
       }
+      return newData;
+    }
+
+    updateData(newData, offset) {
       this.setState({
         offset: offset,
         data: newData
       });
+      var currentPrice = newData[newData.length - 1];
       this.props.onPriceChanged(currentPrice);
     }
 
@@ -51,13 +70,15 @@ export default function updatingDataWrapper(ChartComponent) {
         case 39: // Right
           let newOffset = this.state.offset + 1;
           if (newOffset + LENGTH < this.props.data.length) {
-            this.updateData(newOffset);
+            let newData = this.getData(newOffset);
+            this.updateData(newData, newOffset);
           }
           break;
 
         case 37: // Left
           if (this.state.offset > 0) {
-            this.updateData(this.state.offset - 1);
+            let newData = this.getData(this.state.offset - 1);
+            this.updateData(newData, this.state.offset - 1);
           }
           break;
       }

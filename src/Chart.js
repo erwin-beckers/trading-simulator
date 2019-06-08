@@ -24,6 +24,7 @@ class ChartComponent extends React.Component {
             type={type}
             data={this.state.data}
             chartHeight={this.props.chartHeight}
+            startDate={this.props.startDate}
           />
         )}
       </TypeChooser>

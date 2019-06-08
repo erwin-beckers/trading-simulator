@@ -7,10 +7,14 @@ import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
+import SelectDateDialog from "./SelectDateDialog";
 
 class TopToolBar extends React.Component {
   constructor(props) {
     super(props);
+    this.state={
+      openDialog:false
+    };
     this.classes = makeStyles(theme => ({
       root: {
         flexGrow: 1
@@ -22,6 +26,25 @@ class TopToolBar extends React.Component {
         flexGrow: 1
       }
     }));
+  }
+  
+  onCloseDialog(date){
+    this.setState({
+      openDialog:false
+    });
+    this.props.onGotoDate(date);
+  }
+  
+  onCancelDialog(){
+    this.setState({
+      openDialog:false
+    });
+  }
+
+  onOpenDialog(){
+    this.setState({
+      openDialog:true
+    });
   }
 
   render() {
@@ -45,10 +68,14 @@ class TopToolBar extends React.Component {
               <Button color="inherit" onClick={this.props.onSell}>
                 Sell
               </Button>
+              <Button color="inherit" onClick={this.onOpenDialog.bind(this)}>
+                Goto...
+              </Button>
             </Typography>
             <Typography>Capital: $ {this.props.capital.toFixed(2)}</Typography>
           </Toolbar>
         </AppBar>
+        <SelectDateDialog onCancel={this.onCancelDialog.bind(this)} onClose={this.onCloseDialog.bind(this)} open={this.state.openDialog}></SelectDateDialog>
       </div>
     );
   }
@@ -57,6 +84,7 @@ class TopToolBar extends React.Component {
 TopToolBar.propTypes = {
   onBuy: PropTypes.func,
   onSell: PropTypes.func,
+  onGotoDate: PropTypes.func,
   capital: PropTypes.number
 };
 
