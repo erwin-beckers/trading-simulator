@@ -215,6 +215,7 @@ class CandleStickChart extends React.Component {
             stroke="#FFFFFF"
             opacity={0.5}
             {...xGrid}
+            ticks={12}
           />
           />
           <YAxis
