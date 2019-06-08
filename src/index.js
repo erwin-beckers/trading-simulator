@@ -262,14 +262,13 @@ class RootComponent extends React.Component {
         this.onCloseOrder(ordersToClose[i]);
       }
     }
-    this.updateOpenPosition(this.state.orders, this.state.orderChartItems);
-  //  let newOrders = this.state.orders.slice();
-  //  var chartItems = this.state.orderChartItems.slice();
-  //  this.updateOpenPosition(newOrders, chartItems);
-  //  this.setState({
-  //    orders: newOrders,
-  //    orderChartItems: chartItems
-  //  });
+    let newOrders = this.state.orders.slice();
+    var chartItems = this.state.orderChartItems.slice();
+    this.updateOpenPosition(newOrders, chartItems);
+    this.setState({
+      orders: newOrders,
+      orderChartItems: chartItems
+    });
   }
 
   onPriceChanged(price) {
