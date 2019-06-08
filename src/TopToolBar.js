@@ -61,18 +61,24 @@ class TopToolBar extends React.Component {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" className={this.classes.title}>
-              Backtester&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button color="inherit" onClick={this.props.onBuy}>
-                Buy
-              </Button>
-              <Button color="inherit" onClick={this.props.onSell}>
-                Sell
-              </Button>
-              <Button color="inherit" onClick={this.onOpenDialog.bind(this)}>
+              Trading Simulator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <Button variant="outlined" color="inherit" onClick={this.props.onBuyMarket}>
+                Buy MKT
+              </Button>&nbsp;&nbsp;
+              <Button variant="outlined" color="inherit" onClick={this.props.onSellMarket}>
+                Sell MKT
+              </Button>&nbsp;&nbsp;
+              <Button variant="outlined" color="inherit" onClick={this.props.onBuyLimit}>
+                Buy Lmt
+              </Button>&nbsp;&nbsp;
+              <Button variant="outlined" color="inherit" onClick={this.props.onSellLimit}>
+                Sell Lmt
+              </Button>&nbsp;&nbsp;
+              <Button variant="outlined" color="inherit" onClick={this.onOpenDialog.bind(this)}>
                 Goto...
-              </Button>
+              </Button>&nbsp;&nbsp;
             </Typography>
-            <Typography>Capital: $ {this.props.capital.toFixed(2)}</Typography>
+            <Typography>Capital: $ {this.props.capital.toFixed(2)}&nbsp; ({this.props.percentage.toFixed(2)}%) </Typography>
           </Toolbar>
         </AppBar>
         <SelectDateDialog onCancel={this.onCancelDialog.bind(this)} onClose={this.onCloseDialog.bind(this)} open={this.state.openDialog}></SelectDateDialog>
@@ -82,10 +88,13 @@ class TopToolBar extends React.Component {
 }
 
 TopToolBar.propTypes = {
-  onBuy: PropTypes.func,
-  onSell: PropTypes.func,
+  onBuyMarket: PropTypes.func,
+  onSellMarket: PropTypes.func,
+  onBuyLimit: PropTypes.func,
+  onSellLimit: PropTypes.func,
   onGotoDate: PropTypes.func,
-  capital: PropTypes.number
+  capital: PropTypes.number,
+  percentage:PropTypes.number
 };
 
 export default TopToolBar;

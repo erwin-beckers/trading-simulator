@@ -50,7 +50,6 @@ class CandleStickChart extends React.Component {
   }
 
   onDelete(yCoordinate, moreProps) {
-    console.log("onDelete ");
     this.setState(state => {
       const chartId = moreProps.chartConfig.id;
       const key = `yCoordinateList_${chartId}`;
@@ -70,6 +69,10 @@ class CandleStickChart extends React.Component {
     }
     if (draggedAlert.id === order.chartStoploss.id) {
       order.stoploss = price;
+      this.props.onChanged(order);
+    }
+    if (order.chartOpen && draggedAlert.id === order.chartOpen.id && !order.isopened) {
+      order.open = price;
       this.props.onChanged(order);
     }
   }

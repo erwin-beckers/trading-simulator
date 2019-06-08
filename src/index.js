@@ -7,8 +7,8 @@ import { getData } from "./utils";
 import { TypeChooser } from "react-stockcharts/lib/helper";
 import { InteractiveYCoordinate } from "react-stockcharts/lib/interactive";
 import shortid from "shortid";
-import SplitterLayout from 'react-splitter-layout';
-import 'react-splitter-layout/lib/index.css';
+import SplitterLayout from "react-splitter-layout";
+import "react-splitter-layout/lib/index.css";
 
 const sell = {
   ...InteractiveYCoordinate.defaultProps.defaultPriceCoordinate,
@@ -62,17 +62,28 @@ class RootComponent extends React.Component {
     this.state = {
       orders: [],
       orderChartItems: [],
+      initialCapital: 10000,
       capital: 10000,
+      percentage: 0,
       tickSize: 0.25,
       tickValue: 12.5,
       currentPrice: undefined,
-      chartHeight: this.getWindowHeight()-100,
-      startDate:'1/1/2019'
+      chartHeight: this.getWindowHeight() - 100,
+      startDate: "1/1/2019"
     };
   }
 
-  createOrder(id, type, size, open, stoploss, takeprofit, profitloss) {
-    return { id, type, size, open, stoploss, takeprofit, profitloss };
+  createOrder(
+    id,
+    type,
+    size,
+    open,
+    stoploss,
+    takeprofit,
+    profitloss,
+    isopened
+  ) {
+    return { id, type, size, open, stoploss, takeprofit, profitloss, isopened };
   }
 
   addOrderChartItems(order, orderChartItems) {
@@ -87,6 +98,14 @@ class RootComponent extends React.Component {
     }
 
     if (order.type === "Long") {
+      let buyLimit = {
+        ...buy,
+        yValue: order.open,
+        id: shortid.generate(),
+        draggable: true,
+        order: order,
+        text: "1 Buy LMT"
+      };
       let takeProfit = {
         ...buy,
         yValue: order.takeprofit,
@@ -105,7 +124,19 @@ class RootComponent extends React.Component {
       order.chartStoploss = stopLoss;
       orderChartItems.push(takeProfit);
       orderChartItems.push(stopLoss);
+      if (!order.isopened) {
+        order.chartOpen = buyLimit;
+        orderChartItems.push(buyLimit);
+      }
     } else {
+      let sellLimit = {
+        ...sell,
+        yValue: order.open,
+        id: shortid.generate(),
+        draggable: true,
+        order: order,
+        text: "1 Sell LMT"
+      };
       let takeProfit = {
         ...sell,
         yValue: order.takeprofit,
@@ -126,6 +157,10 @@ class RootComponent extends React.Component {
       order.chartStoploss = stopLoss;
       orderChartItems.push(takeProfit);
       orderChartItems.push(stopLoss);
+      if (!order.isopened) {
+        order.chartOpen = sellLimit;
+        orderChartItems.push(sellLimit);
+      }
     }
   }
 
@@ -139,7 +174,25 @@ class RootComponent extends React.Component {
     return items;
   }
 
-  onBuyOrder() {
+  removeChartItems(chartItemsToRemove, orderChartItems) {
+    let items = [];
+    for (let i = 0; i < orderChartItems.length; ++i) {
+      let found = false;
+      for (let x = 0; x < chartItemsToRemove.length; ++x) {
+        if (orderChartItems[i] === chartItemsToRemove[x]) {
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        items.push(orderChartItems[i]);
+      }
+    }
+    return items;
+  }
+
+  onBuyMarketOrder() {
     if (!this.state.currentPrice) return;
     let now = new Date().getTime();
     var newOrder = this.createOrder(
@@ -149,7 +202,8 @@ class RootComponent extends React.Component {
       this.state.currentPrice.close,
       this.state.currentPrice.close - 4,
       this.state.currentPrice.close + 4,
-      0
+      0,
+      true
     );
     let newOrders = this.state.orders.slice();
     newOrders.push(newOrder);
@@ -161,7 +215,7 @@ class RootComponent extends React.Component {
     this.setState({ orderChartItems: orderChartItems });
   }
 
-  onSellOrder() {
+  onSellMarketOrder() {
     if (!this.state.currentPrice) return;
     let now = new Date().getTime();
     var newOrder = this.createOrder(
@@ -171,7 +225,54 @@ class RootComponent extends React.Component {
       this.state.currentPrice.close,
       this.state.currentPrice.close + 4,
       this.state.currentPrice.close - 4,
-      0
+      0,
+      true
+    );
+    let newOrders = this.state.orders.slice();
+    newOrders.push(newOrder);
+    this.setState({ orders: newOrders });
+
+    let orderChartItems = this.state.orderChartItems.slice();
+    this.addOrderChartItems(newOrder, orderChartItems);
+    this.updateOpenPosition(newOrders, orderChartItems);
+    this.setState({ orderChartItems: orderChartItems });
+  }
+
+  onBuyLimitOrder() {
+    if (!this.state.currentPrice) return;
+    let now = new Date().getTime();
+    var newOrder = this.createOrder(
+      now,
+      "Long",
+      1,
+      this.state.currentPrice.close + 2,
+      this.state.currentPrice.close - 2,
+      this.state.currentPrice.close + 6,
+      0,
+      false
+    );
+    let newOrders = this.state.orders.slice();
+    newOrders.push(newOrder);
+    this.setState({ orders: newOrders });
+
+    let orderChartItems = this.state.orderChartItems.slice();
+    this.addOrderChartItems(newOrder, orderChartItems);
+    this.updateOpenPosition(newOrders, orderChartItems);
+    this.setState({ orderChartItems: orderChartItems });
+  }
+
+  onSellLimitOrder() {
+    if (!this.state.currentPrice) return;
+    let now = new Date().getTime();
+    var newOrder = this.createOrder(
+      now,
+      "Short",
+      1,
+      this.state.currentPrice.close - 2,
+      this.state.currentPrice.close + 2,
+      this.state.currentPrice.close - 6,
+      0,
+      false
     );
     let newOrders = this.state.orders.slice();
     newOrders.push(newOrder);
@@ -184,7 +285,17 @@ class RootComponent extends React.Component {
   }
 
   onCloseOrder(order) {
-    this.setState({ capital: this.state.capital + order.profitloss });
+    if (order.isopened) {
+      this.setState({
+        capital: this.state.capital + order.profitloss,
+        percentage:
+          (100.0 *
+            (this.state.capital +
+              order.profitloss -
+              this.state.initialCapital)) /
+          this.state.initialCapital
+      });
+    }
     let newOrders = this.state.orders.slice();
     let index = newOrders.indexOf(order);
     if (index >= 0) {
@@ -206,6 +317,9 @@ class RootComponent extends React.Component {
   onOrderChanged(order) {
     order.chartTakeProfit.yValue = order.takeprofit;
     order.chartStoploss.yValue = order.stoploss;
+    if (!order.isopened && order.chartOpen) {
+      order.chartOpen.yValue = order.open;
+    }
     let newOrders = this.state.orders.slice();
     this.setState({
       orders: newOrders
@@ -230,8 +344,31 @@ class RootComponent extends React.Component {
     }
 
     let ordersToClose = [];
+    let chartItemsToRemove = [];
     for (let i = 0; i < this.state.orders.length; ++i) {
       let order = this.state.orders[i];
+      if (!order.isopened) {
+        if (order.type === "Long") {
+          if (price.high >= order.open) {
+            order.isopened = true;
+            order.profitloss = this.calculateProfit(order, order.stoploss);
+            chartItemsToRemove.push(order.chartOpen);
+            order.chartOpen = null;
+          }
+        } else {
+          if (price.low <= order.open) {
+            order.isopened = true;
+            order.profitloss = this.calculateProfit(order, order.stoploss);
+            chartItemsToRemove.push(order.chartOpen);
+            order.chartOpen = null;
+          }
+        }
+      }
+    }
+    for (let i = 0; i < this.state.orders.length; ++i) {
+      let order = this.state.orders[i];
+      if (!order.isopened) continue;
+
       if (order.type === "Long") {
         if (price.low <= order.stoploss) {
           // stoploss hit, close order
@@ -257,7 +394,7 @@ class RootComponent extends React.Component {
         order.profitloss = this.calculateProfit(order, price.close);
       }
     }
-    
+
     if (ordersToClose.length) {
       for (let i = 0; i < ordersToClose.length; ++i) {
         this.onCloseOrder(ordersToClose[i]);
@@ -265,6 +402,9 @@ class RootComponent extends React.Component {
     }
     let newOrders = this.state.orders.slice();
     var chartItems = this.state.orderChartItems.slice();
+    if (chartItemsToRemove.length > 0) {
+      chartItems = this.removeChartItems(chartItemsToRemove, chartItems);
+    }
     this.updateOpenPosition(newOrders, chartItems);
     this.setState({
       orders: newOrders,
@@ -285,8 +425,10 @@ class RootComponent extends React.Component {
     let totalProfitLoss = 0;
 
     for (let i = 0; i < orders.length; ++i) {
-      averagePrice += orders[i].open;
-      totalProfitLoss += orders[i].profitloss;
+      if (orders[i].isopened) {
+        averagePrice += orders[i].open;
+        totalProfitLoss += orders[i].profitloss;
+      }
     }
     averagePrice /= orders.length;
     orderChartItems[0].yValue = averagePrice;
@@ -301,42 +443,45 @@ class RootComponent extends React.Component {
     }
   }
 
-  getWindowHeight(){
+  getWindowHeight() {
     let w = window,
-    d = document,
-    e = d.documentElement,
-    g = d.getElementsByTagName('body')[0];
-    return w.innerHeight|| e.clientHeight|| g.clientHeight;
+      d = document,
+      e = d.documentElement,
+      g = d.getElementsByTagName("body")[0];
+    return w.innerHeight || e.clientHeight || g.clientHeight;
   }
 
-
-  onSecondaryPaneSizeChange(secondaryPaneSize) {
-    var height=this.getWindowHeight() - (secondaryPaneSize+70);
-    var self=this;
+  onOrdersTableHeightChanged(height) {
+    var height = this.getWindowHeight() - (height + 70);
+    var self = this;
     setTimeout(() => {
-      self.setState({ chartHeight: height});
-      
+      self.setState({ chartHeight: height });
     }, 100);
   }
-  
-  onGotoDate(date)
-  {
+
+  onGotoDate(date) {
     this.setState({
-      startDate:date
-    })
+      startDate: date
+    });
   }
 
   render() {
     return (
       <div>
         <TopToolBar
-          onBuy={this.onBuyOrder.bind(this)}
-          onSell={this.onSellOrder.bind(this)}
+          onBuyMarket={this.onBuyMarketOrder.bind(this)}
+          onSellMarket={this.onSellMarketOrder.bind(this)}
+          onBuyLimit={this.onBuyLimitOrder.bind(this)}
+          onSellLimit={this.onSellLimitOrder.bind(this)}
           onGotoDate={this.onGotoDate.bind(this)}
           capital={this.state.capital}
+          percentage={this.state.percentage}
         />
-        <SplitterLayout vertical={true} percentage={false}  secondaryInitialSize={230}
-                        onSecondaryPaneSizeChange={this.onSecondaryPaneSizeChange.bind(this)}
+        <SplitterLayout
+          vertical={true}
+          percentage={false}
+          secondaryInitialSize={230}
+          onSecondaryPaneSizeChange={this.onOrdersTableHeightChanged.bind(this)}
         >
           <ChartComponent
             orderChartItems={this.state.orderChartItems}
