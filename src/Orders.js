@@ -12,6 +12,7 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import AppBar from "@material-ui/core/AppBar";
 import TabContainer from "./TabContainer";
+import Statistics from "./Statistics";
 
 
 const StyledTabs = withStyles({
@@ -200,6 +201,13 @@ class Orders extends React.Component {
               </TableBody>
             </Table>
             </div>
+        )}
+        
+        {this.state.tabIndex === 2 && (
+          <div  style={{overflow:'auto', height:'calc(100% - 110px)'}}>
+            <Statistics history={this.props.history}>
+            </Statistics>
+         </div>
         )}
       </div>
     );
