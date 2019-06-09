@@ -61,6 +61,7 @@ class RootComponent extends React.Component {
     super(props);
     this.state = {
       orders: [],
+      history: [],
       orderChartItems: [],
       initialCapital: 10000,
       capital: 10000,
@@ -76,6 +77,7 @@ class RootComponent extends React.Component {
   createOrder(
     id,
     type,
+    date,
     size,
     open,
     stoploss,
@@ -83,7 +85,7 @@ class RootComponent extends React.Component {
     profitloss,
     isopened
   ) {
-    return { id, type, size, open, stoploss, takeprofit, profitloss, isopened };
+    return { id, type, date, size, open, stoploss, takeprofit, profitloss, isopened };
   }
 
   addOrderChartItems(order, orderChartItems) {
@@ -198,6 +200,7 @@ class RootComponent extends React.Component {
     var newOrder = this.createOrder(
       now,
       "Long",
+      this.state.currentPrice.date,
       1,
       this.state.currentPrice.close,
       this.state.currentPrice.close - 4,
@@ -221,6 +224,7 @@ class RootComponent extends React.Component {
     var newOrder = this.createOrder(
       now,
       "Short",
+      this.state.currentPrice.date,
       1,
       this.state.currentPrice.close,
       this.state.currentPrice.close + 4,
@@ -244,6 +248,7 @@ class RootComponent extends React.Component {
     var newOrder = this.createOrder(
       now,
       "Long",
+      this.state.currentPrice.date,
       1,
       this.state.currentPrice.close + 2,
       this.state.currentPrice.close - 2,
@@ -267,6 +272,7 @@ class RootComponent extends React.Component {
     var newOrder = this.createOrder(
       now,
       "Short",
+      this.state.currentPrice.date,
       1,
       this.state.currentPrice.close - 2,
       this.state.currentPrice.close + 2,
@@ -296,6 +302,10 @@ class RootComponent extends React.Component {
           this.state.initialCapital
       });
     }
+    var history=this.state.history.slice();
+    history.push(order);
+    this.setState({history: history});
+
     let newOrders = this.state.orders.slice();
     let index = newOrders.indexOf(order);
     if (index >= 0) {
@@ -351,6 +361,7 @@ class RootComponent extends React.Component {
         if (order.type === "Long") {
           if (price.high >= order.open) {
             order.isopened = true;
+            order.date = price.date,
             order.profitloss = this.calculateProfit(order, order.stoploss);
             chartItemsToRemove.push(order.chartOpen);
             order.chartOpen = null;
@@ -358,6 +369,7 @@ class RootComponent extends React.Component {
         } else {
           if (price.low <= order.open) {
             order.isopened = true;
+            order.date = price.date,
             order.profitloss = this.calculateProfit(order, order.stoploss);
             chartItemsToRemove.push(order.chartOpen);
             order.chartOpen = null;
@@ -493,6 +505,7 @@ class RootComponent extends React.Component {
           />
           <Orders
             orders={this.state.orders}
+            history={this.state.history}
             onClose={this.onCloseOrder.bind(this)}
             onChanged={this.onOrderChanged.bind(this)}
           />

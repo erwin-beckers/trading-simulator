@@ -8,6 +8,44 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import AppBar from "@material-ui/core/AppBar";
+import TabContainer from "./TabContainer";
+
+
+const StyledTabs = withStyles({
+  root:{
+    minHeight: "auto",
+    padding: 0
+  },
+  indicator: {
+    display: "flex",
+    justifyContent: "center",
+    backgroundColor: "#303030",
+    "& > div": {
+      maxWidth: 100,
+      width: "100%",
+      backgroundColor: "white"
+    }
+  }
+})(props => <Tabs {...props} TabIndicatorProps={{ children: <div /> }} />);
+
+const StyledTab = withStyles(theme => ({
+  root: {
+    textTransform: "none",
+    color: "#fff",
+    backgroundColor: "#303030",
+    fontWeight: theme.typography.fontWeightRegular,
+    fontSize: theme.typography.pxToRem(12),
+    marginRight: "1px",
+    "&:focus": {
+      opacity: 1
+    },
+    minHeight: "auto",
+    padding:2
+  }
+}))(props => <Tab disableRipple {...props} />);
 
 const StyledTableCell = withStyles(theme => ({
   head: {
@@ -17,28 +55,17 @@ const StyledTableCell = withStyles(theme => ({
   body: {
     backgroundColor: "#303030",
     color: theme.palette.common.white,
-    fontSize: 14
+    fontSize: 12,
+    padding:0
   }
 }))(TableCell);
 
 class Orders extends React.Component {
   constructor(props) {
     super(props);
-    this.classes = makeStyles(theme => ({
-      root: {
-        width: "100%",
-        height: "calc(100vh - 800px)"
-      },
-      paper: {
-        marginTop: theme.spacing(3),
-        width: "100%",
-        overflowX: "auto",
-        marginBottom: theme.spacing(2)
-      },
-      table: {
-        minWidth: 650
-      }
-    }));
+    this.state = {
+      tabIndex: 0
+    };
   }
 
   closeOrder(order) {
@@ -51,65 +78,129 @@ class Orders extends React.Component {
       this.props.onChanged(order);
     }
   }
+
+  handleChange(event, newValue) {
+    this.setState({
+      tabIndex: newValue
+    });
+  }
+
+  handleChangeIndex(index) {
+    this.setState({
+      tabIndex: index
+    });
+  }
+
   render() {
     return (
-      <div className={this.classes.root}>
-        <Paper className={this.classes.paper}>
-          <Table className={this.classes.table} size="small">
-            <TableHead>
-              <TableRow>
-                <StyledTableCell align="right">Type</StyledTableCell>
-                <StyledTableCell align="right">Size</StyledTableCell>
-                <StyledTableCell align="right">Open</StyledTableCell>
-                <StyledTableCell align="right">Stoploss</StyledTableCell>
-                <StyledTableCell align="right">Take profit</StyledTableCell>
-                <StyledTableCell align="right">P/L</StyledTableCell>
-                <StyledTableCell align="right">B/E</StyledTableCell>
-                <StyledTableCell align="right">Close</StyledTableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {this.props.orders.map(row => (
-                <TableRow key={row.id}>
-                  <StyledTableCell align="right">{row.type}</StyledTableCell>
-                  <StyledTableCell align="right">{row.size}</StyledTableCell>
-                  <StyledTableCell align="right">
-                    {row.open.toFixed(2)}
-                  </StyledTableCell>
-                  <StyledTableCell align="right">
-                    {row.stoploss.toFixed(2)}
-                  </StyledTableCell>
-                  <StyledTableCell align="right">
-                    {row.takeprofit.toFixed(2)}
-                  </StyledTableCell>
-                  <StyledTableCell align="right">
-                    ${row.profitloss.toFixed(2)}
-                  </StyledTableCell>
-                  <StyledTableCell align="right">
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      className={this.classes.button}
-                      onClick={() => this.onMoveToBreakEven(row)}
-                    >
-                      B/E
-                    </Button>
-                  </StyledTableCell>
-                  <StyledTableCell align="right">
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      className={this.classes.button}
-                      onClick={() => this.closeOrder(row)}
-                    >
-                      Close
-                    </Button>
-                  </StyledTableCell>
+      <div style={{height:"100%"}} >
+        <AppBar position="static" color="default">
+          <StyledTabs
+            value={this.state.tabIndex}
+            onChange={this.handleChange.bind(this)}
+            indicatorColor="primary"
+            textColor="primary"
+            variant="fullWidth"
+          >
+            <StyledTab label="Orders" />
+            <StyledTab label="History" />
+            <StyledTab label="Statistics" />
+          </StyledTabs>
+        </AppBar>
+        {this.state.tabIndex === 0 && (
+          <div  style={{overflow:'auto', height:'calc(100% - 110px)'}}>
+            <Table size="small" style={{padding:0}}>
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell align="center">Type</StyledTableCell>
+                  <StyledTableCell align="center">Size</StyledTableCell>
+                  <StyledTableCell align="center">Open</StyledTableCell>
+                  <StyledTableCell align="center">Stoploss</StyledTableCell>
+                  <StyledTableCell align="center">Take profit</StyledTableCell>
+                  <StyledTableCell align="center">P/L</StyledTableCell>
+                  <StyledTableCell align="center">B/E</StyledTableCell>
+                  <StyledTableCell align="center">Close</StyledTableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Paper>
+              </TableHead>
+              <TableBody>
+                {this.props.orders.map(row => (
+                  <TableRow key={row.id}>
+                    <StyledTableCell align="center">{row.type}</StyledTableCell>
+                    <StyledTableCell align="center">{row.size}</StyledTableCell>
+                    <StyledTableCell align="center">
+                      {row.open.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {row.stoploss.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {row.takeprofit.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      ${row.profitloss.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => this.onMoveToBreakEven(row)}
+                      >
+                        B/E
+                      </Button>
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => this.closeOrder(row)}
+                      >
+                        Close
+                      </Button>
+                    </StyledTableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            </div>
+        )}
+        {this.state.tabIndex === 1 && (
+          <div  style={{overflow:'auto', height:'calc(100% - 110px)'}}>
+            <Table size="small" style={{padding:0}}>
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell align="left">Date</StyledTableCell>
+                  <StyledTableCell align="center">Type</StyledTableCell>
+                  <StyledTableCell align="center">Size</StyledTableCell>
+                  <StyledTableCell align="center">Open</StyledTableCell>
+                  <StyledTableCell align="center">Stoploss</StyledTableCell>
+                  <StyledTableCell align="center">Take profit</StyledTableCell>
+                  <StyledTableCell align="center">P/L</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {this.props.history.map(row => (
+                  <TableRow key={row.id}>
+                  <StyledTableCell align="center">{row.date.toLocaleString()}</StyledTableCell>
+                    <StyledTableCell align="center">{row.type}</StyledTableCell>
+                    <StyledTableCell align="center">{row.size}</StyledTableCell>
+                    <StyledTableCell align="center">
+                      {row.open.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {row.stoploss.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      {row.takeprofit.toFixed(2)}
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      ${row.profitloss.toFixed(2)}
+                    </StyledTableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            </div>
+        )}
       </div>
     );
   }
@@ -117,6 +208,7 @@ class Orders extends React.Component {
 
 Orders.propTypes = {
   orders: PropTypes.array.isRequired,
+  history: PropTypes.array.isRequired,
   onClose: PropTypes.func.isRequired,
   onChanged: PropTypes.func.isRequired
 };
