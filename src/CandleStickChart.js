@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 import { format } from "d3-format";
 
-import { ChartCanvas, Chart } from "react-stockcharts";
+import { ChartCanvas, Chart, ZoomButtons } from "react-stockcharts";
 import {
   BarSeries,
   AreaSeries,
@@ -45,7 +45,8 @@ class CandleStickChart extends React.Component {
     this.getInteractiveNodes = getInteractiveNodes.bind(this);
 
     this.state = {
-      enableInteractiveObject: false
+      enableInteractiveObject: false,
+			suffix: 1
     };
   }
 
@@ -76,6 +77,11 @@ class CandleStickChart extends React.Component {
       this.props.onChanged(order);
     }
   }
+	handleReset() {
+		this.setState({
+			suffix: this.state.suffix + 1
+		});
+	}
 
   render() {
     const ema20 = ema()
@@ -131,7 +137,7 @@ class CandleStickChart extends React.Component {
         ratio={ratio}
         margin={{ left: 70, right: 70, top: 20, bottom: 30 }}
         type={type}
-        seriesName="ES"
+        seriesName={`MSFT_${this.state.suffix}`}
         data={data}
         xScale={xScale}
         xAccessor={xAccessor}
@@ -217,7 +223,6 @@ class CandleStickChart extends React.Component {
             {...xGrid}
             ticks={12}
           />
-          />
           <YAxis
             axisAt="right"
             orient="right"
@@ -286,6 +291,9 @@ class CandleStickChart extends React.Component {
             onDelete={this.onDelete}
             yCoordinateList={this.props.orderChartItems}
           />
+					<ZoomButtons
+						onReset={this.handleReset.bind(this)}
+					/>
         </Chart>
         <CrossHairCursor stroke="#FFFFFF" />
       </ChartCanvas>
